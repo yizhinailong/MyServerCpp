@@ -51,8 +51,8 @@ int main() {
 
 对于客户端，服务器存在的唯一标识是一个IP地址和端口，这时候我们需要将这个套接字绑定到一个IP地址和端口上。首先创建一个sockaddr_in结构体
 ```cpp
-#include <arpa/inet.h>  // 这个头文件包含了<netinet/in.h>，不用再次包含了
-#include <cstring>
+#include <arpa/inet.h>
+#include <string.h>
 #include <sys/socket.h>
 
 int main() {
@@ -70,6 +70,73 @@ int main() {
 
 > 条款01: 视C++为一个语言联邦。把C和C++看作两种语言，写代码时需要清楚地知道自己在写C还是C++。如果在写C，请包含头文件`<string.h>`。如果在写C++，请包含`<cstring>`。
 
+`bzero`使用：
+
+在 C 语言中，`bzero()` 是一个用于将内存区域的内容设置为零的函数。它通常用于初始化一个字符数组或结构体，将其所有字节置为 0。
+
+函数原型：
+
+```c
+/* Set N bytes of S to 0.  */
+extern void bzero (void *__s, size_t __n) __THROW __nonnull ((1));
+```
+
+参数：
+
+- `s`：指向需要清零的内存区域的指针。
+- `n`：要清零的字节数。
+
+返回值：
+
+`bzero()` 不返回任何值。它是 `void` 类型的。
+
+示例代码：
+
+```c
+#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char buffer[10];
+    
+    // 使用 bzero 将 buffer 中的所有字节设置为 0
+    bzero(buffer, sizeof(buffer));
+
+    // 打印 buffer 的内容，查看是否被清零
+    for (int i = 0; i < 10; i++) {
+        printf("%d ", buffer[i]);
+    }
+
+    return 0;
+}
+```
+
+使用 `memset()` 替代：
+
+```c
+#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char buffer[10];
+    
+    // 使用 memset 将 buffer 中的所有字节设置为 0
+    memset(buffer, 0, sizeof(buffer));
+
+    // 打印 buffer 的内容，查看是否被清零
+    for (int i = 0; i < 10; i++) {
+        printf("%d ", buffer[i]);
+    }
+
+    return 0;
+}
+```
+
+`memset()` 的语法：
+
+```c
+void *memset(void *s, int c, size_t len);
+```
 设置地址族、IP地址和端口：
 ```cpp
 #include <arpa/inet.h>
@@ -141,29 +208,39 @@ int main() {
 要接受一个客户端连接，需要使用`accept`函数。对于每一个客户端，我们在接受连接时也需要保存客户端的socket地址信息，于是有以下代码：
 ```cpp
 #include <arpa/inet.h>
-#include <cstdio>
-#include <cstring>
+#include <stdio.h>
+#include <string.h>
 #include <sys/socket.h>
 
 int main() {
-
+    // 创建TCP套接字
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
+    // 初始化服务器地址结构
     struct sockaddr_in server_addr;
-    bzero(&server_addr, sizeof(server_addr));
+    memset(&server_addr, 0, sizeof(server_addr));
 
+    // 设置服务器地址家族为Internet地址族
     server_addr.sin_family = AF_INET;
+    // 设置服务器IP地址为本地回环地址
     server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    // 设置服务器端口号为8888
     server_addr.sin_port = htons(8888);
 
+    // 将服务器地址绑定到套接字上
     bind(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr));
 
+    // 监听套接字，准备接收客户端连接
     listen(sockfd, SOMAXCONN);
 
+    // 初始化客户端地址结构
     struct sockaddr_in client_addr;
     socklen_t client_addr_len = sizeof(client_addr);
-    bzero(&client_addr, sizeof(client_addr));
+    memset(&client_addr, 0, sizeof(client_addr));
+    // 接受客户端连接请求
     int client_sockfd = accept(sockfd, (sockaddr*)&client_addr, &client_addr_len);
+
+    // 输出客户端的信息
     printf("new client fd %d ! IP: %s Port: %d\n", client_sockfd, inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 
     return 0;
@@ -174,19 +251,29 @@ int main() {
 到现在，客户端已经可以通过IP地址和端口号连接到这个socket端口了，让我们写一个测试客户端连接试试：
 ```cpp
 #include <arpa/inet.h>
-#include <cstring>
+#include <string.h>
 #include <sys/socket.h>
 
 int main() {
+    // 创建一个TCP套接字
+    // AF_INET指定使用IPv4协议
+    // SOCK_STREAM指定使用面向连接的Socket类型
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
+    // 初始化服务器地址结构
     struct sockaddr_in server_addr;
-    bzero(&server_addr, sizeof(server_addr));
+    // 使用memset将server_addr结构体清零，避免未初始化的垃圾值
+    memset(&server_addr, 0, sizeof(server_addr));
 
-    server_addr.sin_family = AF_INET;
+    // 设置服务器地址结构的成员变量
+    server_addr.sin_family = AF_INET; // 使用IPv4地址族
+    // 将字符串形式的IP地址转换为网络字节序的二进制形式
     server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    // 将主机字节序的端口号转换为网络字节序
     server_addr.sin_port = htons(8888);
 
+    // 尝试连接到服务器
+    // 这里将服务器地址结构转换为 sockaddr* 类型，因为connect函数需要这种类型
     connect(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr));
 
     return 0;
@@ -202,4 +289,4 @@ new client fd 4 ! IP: 127.0.0.1 Port: 48189
 
 事实上对于如`socket`,`bind`,`listen`,`accept`,`connect`等函数，通过返回值以及`errno`可以确定程序运行的状态、是否发生错误。在day02的教程中，我们会进一步完善整个服务器，处理所有可能的错误，并实现一个echo服务器（客户端发送给服务器一个字符串，服务器收到后返回相同的内容）。
 
-参考源代码：[https://github.com/yuesong-feng/30dayMakeCppServer/tree/main/code/day01](https://github.com/yuesong-feng/30dayMakeCppServer/tree/main/code/day01)
+参考代码：[https://github.com/yuesong-feng/30dayMakeCppServer/tree/main/code/day01](https://github.com/yuesong-feng/30dayMakeCppServer/tree/main/code/day01)

@@ -1,5 +1,5 @@
 #include <arpa/inet.h>
-#include <cstring>
+#include <string.h>
 #include <sys/socket.h>
 
 int main() {
@@ -11,7 +11,7 @@ int main() {
     // 初始化服务器地址结构
     struct sockaddr_in server_addr;
     // 使用memset将server_addr结构体清零，避免未初始化的垃圾值
-    std::memset(&server_addr, 0, sizeof(server_addr));
+    memset(&server_addr, 0, sizeof(server_addr));
 
     // 设置服务器地址结构的成员变量
     server_addr.sin_family = AF_INET; // 使用IPv4地址族
