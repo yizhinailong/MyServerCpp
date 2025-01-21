@@ -6,6 +6,8 @@
 
 #include "util.h"
 
+#define BUFFER_SIZE 1024
+
 int main() {
     // 创建一个TCP套接字
     // AF_INET指定使用IPv4协议
@@ -34,7 +36,7 @@ int main() {
     // 无限循环以持续通信
     while (true) {
         // 初始化读写缓冲区
-        char buf[1024];
+        char buf[BUFFER_SIZE];
         // 缓冲区清零
         memset(&buf, 0, sizeof(buf));
         // 从标准输入读取一行数据
