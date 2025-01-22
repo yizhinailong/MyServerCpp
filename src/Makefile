@@ -1,6 +1,5 @@
-serve:
-	g++ -o build/server server.cpp util.cpp
-	g++ -o build/client client.cpp util.cpp
-
+server:
+	g++ util.cpp client.cpp -o build/client && \
+	g++ util.cpp server.cpp Epoll.cpp InetAddress.cpp Socket.cpp -o build/server
 clean:
-	rm -f build/server build/client
+	rm server && rm client
