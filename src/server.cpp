@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <vector>
 
+#include "Channel.h"
 #include "Epoll.h"
 #include "InetAddress.h"
 #include "Socket.h"
@@ -45,14 +46,17 @@ int main() {
     /* create epoll */
     Epoll* epoll = new Epoll();
     server_socket->set_nonblocking();
-    epoll->add_fd(server_socket->get_fd(), EPOLLIN | EPOLLET);
+
+    Channel* server_channel = new Channel(epoll, server_socket->get_fd());
+    server_channel->enable_reading();
 
     while (true) {
-        std::vector<epoll_event> events = epoll->poll();
-        int nfds = events.size();
+        std::vector<Channel*> activate_channels = epoll->poll();
+        int nfds = activate_channels.size();
 
         for (int i = 0; i < nfds; i++) {
-            if (events[i].data.fd == server_socket->get_fd()) {
+            int channel_fd = activate_channels[i]->get_fd();
+            if (channel_fd == server_socket->get_fd()) {
                 InetAddress* client_addr = new InetAddress();
                 Socket* client_socket = new Socket(server_socket->accept(client_addr));
 
@@ -60,9 +64,10 @@ int main() {
                        htons(client_addr->addr.sin_port));
 
                 client_socket->set_nonblocking();
-                epoll->add_fd(client_socket->get_fd(), EPOLLIN | EPOLLET);
-            } else if (events[i].events | EPOLLIN) {
-                handle_read_event(events[i].data.fd);
+                Channel* client_channel = new Channel(epoll, client_socket->get_fd());
+                client_channel->enable_reading();
+            } else if (activate_channels[i]->get_revents() | EPOLLIN) {
+                handle_read_event(activate_channels[i]->get_fd());
             } else {
                 printf("something else happened\n");
             }
