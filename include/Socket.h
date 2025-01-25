@@ -18,5 +18,5 @@ public:
     int get_fd();
 
 private:
-    int fd;
+    int _fd;
 };

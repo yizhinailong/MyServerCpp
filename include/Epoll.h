@@ -18,6 +18,6 @@ public:
     std::vector<Channel*> poll(int timeout = -1);
 
 private:
-    int epfd;
-    struct epoll_event* events;
+    int _epfd;
+    struct epoll_event* _events;
 };

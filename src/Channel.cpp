@@ -1,36 +1,46 @@
 #include "Channel.h"
 
 #include "Epoll.h"
+#include "EventLoop.h"
 
-Channel::Channel(Epoll* _epoll, int _fd) : epoll(_epoll), fd(_fd), events(0), revents(0), in_epoll(false) {}
+Channel::Channel(EventLoop* epoll, int fd)
+    : _epoll(epoll), _fd(fd), _events(0), _revents(0), _in_epoll(false) {}
 
 Channel::~Channel() {}
 
 void Channel::enable_reading() {
-    events = EPOLLIN | EPOLLET;
-    epoll->update_channel(this);
+    _events = EPOLLIN | EPOLLET;
+    _epoll->update_channel(this);
 }
 
 int Channel::get_fd() {
-    return fd;
+    return _fd;
 }
 
 uint32_t Channel::get_events() {
-    return events;
+    return _events;
 }
 
 uint32_t Channel::get_revents() {
-    return revents;
+    return _revents;
 }
 
-void Channel::set_revents(uint32_t _ev) {
-    revents = _ev;
+void Channel::set_revents(uint32_t ev) {
+    _revents = ev;
 }
 
 bool Channel::get_in_epoll() {
-    return in_epoll;
+    return _in_epoll;
 }
 
 void Channel::set_in_epoll() {
-    in_epoll = true;
+    _in_epoll = true;
+}
+
+void Channel::handle_event() {
+    _callback();
+}
+
+void Channel::set_callback(std::function<void()> callback) {
+    _callback = callback;
 }
