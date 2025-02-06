@@ -1,5 +1,7 @@
 #include "Acceptor.h"
 
+#include <iostream>
+
 #include "Channel.h"
 #include "InetAddress.h"
 #include "Socket.h"
@@ -15,16 +17,26 @@ Acceptor::Acceptor(EventLoop* event_loop)
     std::function<void()> callback = std::bind(&Acceptor::accept_connection, this);
     _acceptor_channel->set_callback(callback);
     _acceptor_channel->enable_reading();
+    delete _addr;
 }
 
 Acceptor::~Acceptor() {
     delete _socket;
-    delete _addr;
     delete _acceptor_channel;
 }
 
 void Acceptor::accept_connection() {
-    _new_connection_callback(_socket);
+    InetAddress* client_addr = new InetAddress();
+    Socket* client_socket = new Socket(_socket->accept(client_addr));
+
+    std::cout << "new client sockfd " << client_socket->get_fd()
+              << " IP " << inet_ntoa(client_addr->addr.sin_addr)
+              << " Port " << ntohl(client_addr->addr.sin_port)
+              << std::endl;
+
+    client_socket->set_nonblocking();
+    _new_connection_callback(client_socket);
+    delete client_addr;
 }
 
 void Acceptor::set_new_connection_callback(std::function<void(Socket*)> new_connection_callback) {
