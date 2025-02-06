@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "Acceptor.h"
 #include "Channel.h"
 #include "Epoll.h"
 #include "EventLoop.h"
@@ -14,20 +15,14 @@
 #define READ_BUFFER 1024
 
 Server::Server(EventLoop* event_loop)
-    : _event_loop(event_loop) {
-    Socket* server_socket = new Socket();
-    InetAddress* server_addr = new InetAddress("127.0.0.1", 8888);
-    server_socket->bind(server_addr);
-    server_socket->listen();
-    server_socket->set_nonblocking();
-
-    Channel* server_channel = new Channel(_event_loop, server_socket->get_fd());
-    std::function<void()> callback = std::bind(&Server::new_connection, this, server_socket);
-    server_channel->set_callback(callback);
-    server_channel->enable_reading();
+    : _event_loop(event_loop), _accetpor(nullptr) {
+    _accetpor = new Acceptor(_event_loop);
+    std::function<void(Socket*)> callback = std::bind(&Server::new_connection, this, std::placeholders::_1);
+    _accetpor->set_new_connection_callback(callback);
 }
 
 Server::~Server() {
+    delete _accetpor;
 }
 
 void Server::handle_read_event(int sockfd) {
