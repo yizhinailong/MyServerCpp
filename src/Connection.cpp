@@ -5,9 +5,11 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "Buffer.h"
 #include "Channel.h"
 #include "EventLoop.h"
 #include "Socket.h"
+#include "util.h"
 
 #define READ_BUFFER 1024
 
@@ -17,6 +19,7 @@ Connection::Connection(EventLoop* event_loop, Socket* socket)
     std::function<void()> callback = std::bind(&Connection::echo, this, _socket->get_fd());
     _channel->set_callback(callback);
     _channel->enable_reading();
+    _read_buffer = new Buffer();
 }
 
 Connection::~Connection() {
@@ -32,13 +35,15 @@ void Connection::echo(int sockfd) {
         ssize_t bytes_read = read(sockfd, buf, sizeof(buf));
 
         if (bytes_read > 0) {
-            std::cout << "message from sockfd" << sockfd << " : " << buf << std::endl;
-            write(sockfd, buf, sizeof(buf));
+            _read_buffer->append(buf, bytes_read);
         } else if (bytes_read == -1 && errno == EINTR) {
             std::cout << "client interrupt normally, please waitting" << std::endl;
             continue;
         } else if (bytes_read == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-            std::cout << "finish reading once, errno : " << errno << std::endl;
+            std::cout << "finish reading once, message from client "
+                      << sockfd << " : " << _read_buffer->c_str() << std::endl;
+            errif(write(sockfd, _read_buffer->c_str(), _read_buffer->size()) == -1, "socket write error");
+            _read_buffer->clear();
             break;
         } else if (bytes_read == 0) {
             std::cout << "EOF, client sockfd " << sockfd << " disconnection" << std::endl;
