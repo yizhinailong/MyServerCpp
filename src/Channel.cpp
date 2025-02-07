@@ -3,14 +3,14 @@
 #include "Epoll.h"
 #include "EventLoop.h"
 
-Channel::Channel(EventLoop* epoll, int fd)
-    : _epoll(epoll), _fd(fd), _events(0), _revents(0), _in_epoll(false) {}
+Channel::Channel(EventLoop* event_loop, int fd)
+    : _event_loop(event_loop), _fd(fd), _events(0), _revents(0), _in_epoll(false) {}
 
 Channel::~Channel() {}
 
 void Channel::enable_reading() {
     _events = EPOLLIN | EPOLLET;
-    _epoll->update_channel(this);
+    _event_loop->update_channel(this);
 }
 
 int Channel::get_fd() {
@@ -38,7 +38,7 @@ void Channel::set_in_epoll() {
 }
 
 void Channel::handle_event() {
-    _callback();
+    _event_loop->add_thread(_callback);
 }
 
 void Channel::set_callback(std::function<void()> callback) {

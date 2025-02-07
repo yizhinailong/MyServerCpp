@@ -4,10 +4,12 @@
 
 #include "Channel.h"
 #include "Epoll.h"
+#include "ThreadPool.h"
 
 EventLoop::EventLoop()
-    : _epoll(nullptr), _quite(false) {
+    : _epoll(nullptr), _quite(false), _thread_pool(nullptr) {
     _epoll = new Epoll();
+    _thread_pool = new ThreadPool();
 }
 
 EventLoop::~EventLoop() {
@@ -26,4 +28,8 @@ void EventLoop::loop() {
 
 void EventLoop::update_channel(Channel* channel) {
     _epoll->update_channel(channel);
+}
+
+void EventLoop::add_thread(std::function<void()> thread) {
+    _thread_pool->add(thread);
 }

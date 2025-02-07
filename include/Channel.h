@@ -28,7 +28,7 @@ public:
     void set_callback(std::function<void()> callback);
 
 private:
-    EventLoop* _epoll;
+    EventLoop* _event_loop;
     int _fd;
     uint32_t _events;
     uint32_t _revents;
