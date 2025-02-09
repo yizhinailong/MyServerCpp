@@ -44,8 +44,7 @@ void Connection::echo(int sockfd) {
         } else if (bytes_read == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
             std::cout << "finish reading once, message from client "
                       << sockfd << " : " << _read_buffer->c_str() << std::endl;
-            // send(sockfd);
-            errif(write(sockfd, _read_buffer->c_str(), _read_buffer->size()) == -1, "socket write error");
+            send(sockfd);
             _read_buffer->clear();
             break;
         } else if (bytes_read == 0) {
