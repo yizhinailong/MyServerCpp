@@ -1,6 +1,4 @@
-#include "ThreadPool.h"
-
-#include <stdexcept>
+#include "ThreadPool.hpp"
 
 ThreadPool::ThreadPool(int size)
     : _stop(false) {
@@ -36,15 +34,4 @@ ThreadPool::~ThreadPool() {
             thread.join();
         }
     }
-}
-
-void ThreadPool::add(std::function<void()> thread) {
-    {
-        std::unique_lock<std::mutex> lock(_tasks_mtx);
-        if (_stop) {
-            throw std::runtime_error("ThreadPool already stop, can't add task any more!");
-        }
-        _tasks.emplace(thread);
-    }
-    _cv.notify_one();
 }
