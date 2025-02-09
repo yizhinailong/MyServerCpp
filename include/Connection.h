@@ -13,13 +13,13 @@ public:
     ~Connection();
 
     void echo(int sockfd);
-    void set_delete_connection_callback(std::function<void(Socket*)> delete_connection_callback);
+    void set_delete_connection_callback(std::function<void(int)> delete_connection_callback);
+    void send(int sockfd);
 
 private:
     EventLoop* _event_loop;
     Socket* _socket;
     Channel* _channel;
-    std::function<void(Socket*)> _delete_connection_callback;
-    std::string* in_buffer;
+    std::function<void(int)> _delete_connection_callback;
     Buffer* _read_buffer;
 };

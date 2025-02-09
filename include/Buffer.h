@@ -16,6 +16,8 @@ public:
 
     void get_line();
 
+    void set_buf(const char* buffer);
+
 private:
     std::string _buffer;
 };

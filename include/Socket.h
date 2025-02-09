@@ -5,7 +5,7 @@ class InetAddress;
 class Socket {
 public:
     Socket();
-    Socket(int _fd);
+    Socket(int fd);
 
     ~Socket();
 

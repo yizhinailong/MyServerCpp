@@ -31,3 +31,8 @@ void Buffer::get_line() {
     _buffer.clear();
     std::getline(std::cin, _buffer);
 }
+
+void Buffer::set_buf(const char* buffer) {
+    _buffer.clear();
+    _buffer.append(buffer);
+}

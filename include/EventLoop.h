@@ -13,8 +13,6 @@ public:
     void loop();
     void update_channel(Channel* channel);
 
-    void add_thread(std::function<void()> thread);
-
 private:
     Epoll* _epoll;
     bool _quite;

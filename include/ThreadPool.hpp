@@ -7,8 +7,7 @@
 #include <thread>
 #include <vector>
 
-class ThreadPool
-{
+class ThreadPool {
 public:
     ThreadPool(int size = 10);
     ~ThreadPool();

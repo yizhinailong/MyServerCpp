@@ -29,7 +29,3 @@ void EventLoop::loop() {
 void EventLoop::update_channel(Channel* channel) {
     _epoll->update_channel(channel);
 }
-
-void EventLoop::add_thread(std::function<void()> thread) {
-    _thread_pool->add(thread);
-}
